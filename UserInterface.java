@@ -23,9 +23,9 @@ public class UserInterface {
 	JButton submitButton;
 	JButton nextButton;
 	
-	String spokenString = "TESTONE";
+	String spokenString = "TEST";
 	String evaluationString = "";
-
+	
 	public UserInterface(int w, int h) {
 
 		// Frame initialization
@@ -35,17 +35,46 @@ public class UserInterface {
 
 		getFrame().getContentPane().setLayout(new BorderLayout());
 		
+		setSummaryLabel(createSummaryLabel());
+		setNextButton(createNextButton());
 		
 		getFrame().getContentPane().add(BorderLayout.NORTH, getMenuBar());
+		getFrame().getContentPane().add(getSummaryLabel(), BorderLayout.CENTER);
+		getFrame().getContentPane().add(getNextButton(), BorderLayout.EAST);
 		getFrame().getContentPane().add(BorderLayout.SOUTH, getInputPanel());
 		
-		setSummaryLabel(new JLabel("ParrotNATO"));
-		getSummaryLabel().setHorizontalAlignment(JLabel.CENTER);
-		getSummaryLabel().setFont(new Font("Consolas", Font.PLAIN, 32));
-		getFrame().getContentPane().add(getSummaryLabel(), BorderLayout.CENTER);
-
+		
 	}
 
+	private JButton createNextButton() {
+		
+		JButton nextButton = new JButton(">");
+		
+		Action nextAction = new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				System.out.println("Play next sound");
+				getInputField().setText(""); // clear input field
+				// TODO stop old sound, play new one
+				
+			}
+
+		};
+		
+		nextButton.addActionListener(nextAction);
+		return nextButton;
+	}
+	
+	private JLabel createSummaryLabel() {
+		
+		JLabel summaryLabel = new JLabel("Press the > button to begin");
+		summaryLabel.setHorizontalAlignment(JLabel.CENTER);
+		summaryLabel.setFont(new Font("Consolas", Font.PLAIN, 32));
+		return summaryLabel;
+		
+	}
 	private String generateEvaluationString(String userInput, String spoken) {
 		return "<html>ParrotNATO<br/>Spoken: "+ spoken + "<br/>Answer: " 
 				+ userInput + "</html>";
@@ -68,9 +97,10 @@ public class UserInterface {
 		// Input Panel
 		JPanel panel = new JPanel();
 		JLabel textLabel = new JLabel("Answer:");
+		textLabel.setFont(new Font("Consolas", Font.PLAIN, 16));
 		setSubmitButton(createSubmitButton());
 		setInputField(createInputField());
-
+		
 		panel.add(textLabel);
 		panel.add(getInputField());
 		panel.add(getSubmitButton());
@@ -88,7 +118,7 @@ public class UserInterface {
 
 				displayEvaluation(getInputField().getText(), getSpokenString());
 				getInputField().setText(""); // Clear text field
-
+				// TODO turn off sound
 			}
 
 		};
@@ -127,7 +157,7 @@ public class UserInterface {
 	public JButton createSubmitButton() {
 
 		JButton submitButton = new JButton("Check");
-
+		submitButton.setFont(new Font("Consolas", Font.PLAIN, 14));
 		submitButton.addActionListener(getSubmitAction());
 
 		return submitButton;
