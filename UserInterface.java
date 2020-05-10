@@ -3,6 +3,7 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.Random;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -15,6 +16,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+
 public class UserInterface {
 
 	JFrame frame;
@@ -22,12 +24,18 @@ public class UserInterface {
 	JTextField inputField;
 	JButton submitButton;
 	JButton nextButton;
+	JButton playAgainButton;
 	
 	String spokenString = "TEST";
 	String evaluationString = "";
+
+	SoundPlayer soundPlayer = new SoundPlayer();
+	
+	boolean alphabeticOnly = true;
+	int wordLength = 5;
 	
 	public UserInterface(int w, int h) {
-
+		
 		// Frame initialization
 		setFrame(new JFrame("ParrotNATO"));
 		getFrame().setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -37,15 +45,64 @@ public class UserInterface {
 		
 		setSummaryLabel(createSummaryLabel());
 		setNextButton(createNextButton());
+		setPlayAgainButton(createPlayAgainButton());
 		
 		getFrame().getContentPane().add(BorderLayout.NORTH, getMenuBar());
 		getFrame().getContentPane().add(getSummaryLabel(), BorderLayout.CENTER);
 		getFrame().getContentPane().add(getNextButton(), BorderLayout.EAST);
+		getFrame().getContentPane().add(getPlayAgainButton(), BorderLayout.WEST);
 		getFrame().getContentPane().add(BorderLayout.SOUTH, getInputPanel());
 		
 		
 	}
+	
+	private void doSample() {
+		
+		getSummaryLabel().setText("Speaking");
+		setSpokenString(getRandomString());
+		getSoundPlayer().speakWord(getSpokenString());
+		
+		
+	}
+	
+	private String getRandomString() {
+		
+		String str = "";
+		for (int i = 0; i < getWordLength(); i++) {
+			
+			char c = (char)((new Random()).nextInt(26) + 'A');
+			str += c;
+		}
+		System.out.println(str);
+		return str;
+		
+	}
 
+	
+	private JButton createPlayAgainButton() {
+
+		JButton playAgainButton = new JButton("<");
+
+		Action playAgainAction = new AbstractAction() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				if (getSoundPlayer().getClip() != null && 
+						!getSoundPlayer().getClip().isActive()) {
+					getSoundPlayer().speakWord(getSpokenString());
+				}
+				
+			}
+
+		};
+		
+		playAgainButton.addActionListener(playAgainAction);
+		
+		return playAgainButton;
+		
+	}
+	
 	private JButton createNextButton() {
 		
 		JButton nextButton = new JButton(">");
@@ -55,9 +112,8 @@ public class UserInterface {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				
-				System.out.println("Play next sound");
 				getInputField().setText(""); // clear input field
-				// TODO stop old sound, play new one
+				doSample();
 				
 			}
 
@@ -68,8 +124,8 @@ public class UserInterface {
 	}
 	
 	private JLabel createSummaryLabel() {
-		
-		JLabel summaryLabel = new JLabel("Press the > button to begin");
+		JLabel summaryLabel = new JLabel(
+				"<html>Press the right button to begin<br/>Press the left button to play sound again</html>\"");
 		summaryLabel.setHorizontalAlignment(JLabel.CENTER);
 		summaryLabel.setFont(new Font("Consolas", Font.PLAIN, 32));
 		return summaryLabel;
@@ -196,12 +252,52 @@ public class UserInterface {
 		this.nextButton = nextButton;
 	}
 
+	public JButton getPlayAgainButton() {
+		return playAgainButton;
+	}
+
+	public void setPlayAgainButton(JButton playAgainButton) {
+		this.playAgainButton = playAgainButton;
+	}
+
+	public SoundPlayer getSoundPlayer() {
+		return soundPlayer;
+	}
+
+	public void setSoundPlayer(SoundPlayer soundPlayer) {
+		this.soundPlayer = soundPlayer;
+	}
+
 	public String getSpokenString() {
 		return spokenString;
 	}
 
 	public void setSpokenString(String spokenString) {
 		this.spokenString = spokenString;
+	}
+
+	public String getEvaluationString() {
+		return evaluationString;
+	}
+
+	public void setEvaluationString(String evaluationString) {
+		this.evaluationString = evaluationString;
+	}
+
+	public boolean alphabeticOnly() {
+		return alphabeticOnly;
+	}
+
+	public void setAlphabeticOnly(boolean alphabeticOnly) {
+		this.alphabeticOnly = alphabeticOnly;
+	}
+
+	public int getWordLength() {
+		return wordLength;
+	}
+
+	public void setWordLength(int wordLength) {
+		this.wordLength = wordLength;
 	}
 
 	public JFrame getFrame() {
