@@ -45,7 +45,7 @@ public class SoundPlayer {
 			try {
 
 				URL url = this.getClass().getClassLoader().getResource("sounds/" + c + ".wav");
-
+            
 				if (completeStream == null) {
 
 					// if this is the first noise, initialize the stream with it

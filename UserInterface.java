@@ -1,6 +1,8 @@
 import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Random;
@@ -8,6 +10,7 @@ import java.util.Random;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -15,6 +18,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 
 
 public class UserInterface {
@@ -25,8 +29,10 @@ public class UserInterface {
 	JButton submitButton;
 	JButton nextButton;
 	JButton playAgainButton;
+	JToggleButton alphabeticOnlyToggle;
+	JComboBox<Integer> wordLengthDropDown;
 	
-	String spokenString = "TEST";
+	String spokenString = "";
 	String evaluationString = "";
 
 	SoundPlayer soundPlayer = new SoundPlayer();
@@ -47,12 +53,10 @@ public class UserInterface {
 		setNextButton(createNextButton());
 		setPlayAgainButton(createPlayAgainButton());
 		
-		getFrame().getContentPane().add(BorderLayout.NORTH, getMenuBar());
 		getFrame().getContentPane().add(getSummaryLabel(), BorderLayout.CENTER);
 		getFrame().getContentPane().add(getNextButton(), BorderLayout.EAST);
 		getFrame().getContentPane().add(getPlayAgainButton(), BorderLayout.WEST);
 		getFrame().getContentPane().add(BorderLayout.SOUTH, getInputPanel());
-		
 		
 	}
 	
@@ -62,23 +66,86 @@ public class UserInterface {
 		setSpokenString(getRandomString());
 		getSoundPlayer().speakWord(getSpokenString());
 		
-		
 	}
 	
 	private String getRandomString() {
 		
 		String str = "";
-		for (int i = 0; i < getWordLength(); i++) {
+		if (!getAlphabeticOnlyToggle().isSelected()) {
 			
-			char c = (char)((new Random()).nextInt(26) + 'A');
-			str += c;
+			// Generate String with alphabetic characters only
+			for (int i = 0; i < getWordLength(); i++) {
+
+				char c = (char) ((new Random()).nextInt(26) + 'A');
+				str += c;
+			}
+			
+		} else {
+			
+			// Generate String with numeric characters only
+			for (int i = 0; i < getWordLength(); i++) {
+
+				char c = (char) ((new Random()).nextInt(10) + '0');
+				str += c;
+			}
+			
 		}
-		System.out.println(str);
 		return str;
 		
 	}
-
 	
+	private JComboBox<Integer> createWordLengthDropDown(int maxLength) {
+		
+		Integer [] choices = new Integer[maxLength - 1];
+		for (int i = 1; i < choices.length + 1; i++) {
+			
+			// Range from 1-9
+			choices[i - 1] = i;
+			
+		}
+		JComboBox<Integer> dropDown = new JComboBox<Integer>(choices);
+
+		ItemListener itemListener = new ItemListener() {
+			
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				
+				setWordLength((int)dropDown.getSelectedItem());
+				
+			}
+		};
+		
+		dropDown.addItemListener(itemListener);
+		dropDown.setSelectedIndex(getWordLength() - 1); // default selection
+		return dropDown;
+		
+	}
+	
+	
+	private JToggleButton createAlphabeticOnlyToggle() {
+
+		JToggleButton toggle = new JToggleButton("Alphabetic Only");
+
+		ItemListener itemListener = new ItemListener() {
+
+			public void itemStateChanged(ItemEvent itemEvent) {
+
+				if (itemEvent.getStateChange() == ItemEvent.SELECTED) {
+					
+					toggle.setText("Numeric Only");
+
+				} else {
+
+					toggle.setText("Alphabetic Only");
+					
+				}
+			}
+		};
+
+		toggle.addItemListener(itemListener);
+		return toggle;
+
+	}
 	private JButton createPlayAgainButton() {
 
 		JButton playAgainButton = new JButton("<");
@@ -132,32 +199,29 @@ public class UserInterface {
 		
 	}
 	private String generateEvaluationString(String userInput, String spoken) {
+      String extension = spoken.equals(userInput) ? "Correct" : "Incorrect";
 		return "<html>ParrotNATO<br/>Spoken: "+ spoken + "<br/>Answer: " 
-				+ userInput + "</html>";
+				+ userInput + "<br/>" + extension + "</html>";
 		
 	}
 	
-	private JMenuBar getMenuBar() {
-
-		JMenuBar menuBar = new JMenuBar();
-		JMenu settings = new JMenu("Settings");
-		JMenuItem settingsOption1 = new JMenuItem("Setting 1");
-		settings.add(settingsOption1);
-		menuBar.add(settings);
-		return menuBar;
-
-	}
-
 	private JPanel getInputPanel() {
 
 		// Input Panel
 		JPanel panel = new JPanel();
-		JLabel textLabel = new JLabel("Answer:");
-		textLabel.setFont(new Font("Consolas", Font.PLAIN, 16));
+		JLabel answerTextLabel = new JLabel("Answer:");
+		answerTextLabel.setFont(new Font("Consolas", Font.PLAIN, 16));
+		JLabel wordLengthLabel = new JLabel("Word Length:");
+		wordLengthLabel.setFont(answerTextLabel.getFont());
 		setSubmitButton(createSubmitButton());
 		setInputField(createInputField());
+		setAlphabeticOnlyToggle(createAlphabeticOnlyToggle());
+		setWordLengthDropDown(createWordLengthDropDown(10));
 		
-		panel.add(textLabel);
+		panel.add(wordLengthLabel);
+		panel.add(getWordLengthDropDown());
+		panel.add(getAlphabeticOnlyToggle());
+		panel.add(answerTextLabel);
 		panel.add(getInputField());
 		panel.add(getSubmitButton());
 
@@ -174,7 +238,6 @@ public class UserInterface {
 
 				displayEvaluation(getInputField().getText(), getSpokenString());
 				getInputField().setText(""); // Clear text field
-				// TODO turn off sound
 			}
 
 		};
@@ -194,9 +257,14 @@ public class UserInterface {
 		KeyAdapter uppercaseConverter = new KeyAdapter() {
 
 			public void keyTyped(KeyEvent e) {
-
-				if (Character.isLowerCase(e.getKeyChar())) {
-
+            
+            if (getSoundPlayer().getClip() != null && getSoundPlayer().getClip().isActive()) {
+               
+               // Don't take input if a sound is playing
+               e.consume();
+               
+            } else if (Character.isLowerCase(e.getKeyChar())) {
+               
 					e.setKeyChar(Character.toUpperCase(e.getKeyChar()));
 
 				}
@@ -258,6 +326,22 @@ public class UserInterface {
 
 	public void setPlayAgainButton(JButton playAgainButton) {
 		this.playAgainButton = playAgainButton;
+	}
+
+	public JComboBox<Integer> getWordLengthDropDown() {
+		return wordLengthDropDown;
+	}
+
+	public void setWordLengthDropDown(JComboBox<Integer> wordLengthDropDown) {
+		this.wordLengthDropDown = wordLengthDropDown;
+	}
+
+	public JToggleButton getAlphabeticOnlyToggle() {
+		return alphabeticOnlyToggle;
+	}
+
+	public void setAlphabeticOnlyToggle(JToggleButton jToggleButton) {
+		this.alphabeticOnlyToggle = jToggleButton;
 	}
 
 	public SoundPlayer getSoundPlayer() {
